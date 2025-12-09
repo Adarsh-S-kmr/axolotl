@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:math';
+import 'games.dart';
 
 late UserProfile userProfile;
 
@@ -20,6 +21,13 @@ void main() {
   runApp(const NeuroBloomApp());
 }
 
+Map<String, List<int>> domainGameMapping = {
+  'Executive Function': [11, 12, 13, 14, 15],
+  'Working Memory': [16, 17, 18, 19, 20],
+  'Attention': [21, 22, 23, 24, 25],
+  'Processing Speed': [26, 27, 28, 29, 30],
+  'Abstract Reasoning': [31, 32, 33, 34, 35],
+};
 // DATA MODEL 1: GameAttempt
 class GameAttempt {
   final int gameId;
@@ -122,7 +130,7 @@ class UserProfile {
 }
 
 class NeuroBloomApp extends StatelessWidget {
-  const NeuroBloomApp({Key? key}) : super(key: key);
+  const NeuroBloomApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -234,7 +242,7 @@ class GameEngine {
 
 // ==================== STUNNING SPLASH SCREEN ====================
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -297,18 +305,18 @@ class _SplashScreenState extends State<SplashScreen>
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const SignUpScreen(),
+          const SignUpScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,
               child: SlideTransition(
                 position:
-                    Tween<Offset>(
-                      begin: const Offset(0, 0.1),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(parent: animation, curve: Curves.easeOut),
-                    ),
+                Tween<Offset>(
+                  begin: const Offset(0, 0.1),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                ),
                 child: child,
               ),
             );
@@ -475,7 +483,7 @@ class ElegantWavePainter extends CustomPainter {
 // ==================== SIGN UP SCREEN ====================
 // ==================== STUNNING SIGN UP SCREEN ====================
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({Key? key}) : super(key: key);
+  const SignUpScreen({super.key});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -760,9 +768,9 @@ class _SignUpScreenState extends State<SignUpScreen>
                                             child: CircularProgressIndicator(
                                               strokeWidth: 3,
                                               valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    Colors.white,
-                                                  ),
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -1071,8 +1079,7 @@ class OnboardingScreen extends StatefulWidget {
   final String name;
   final String email;
 
-  const OnboardingScreen({Key? key, required this.name, required this.email})
-    : super(key: key);
+  const OnboardingScreen({super.key, required this.name, required this.email});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -1361,9 +1368,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
+// DATA MODEL FOR THE TRAINING SESSION
+class TrainingSession {
+  final String domainName;
+  final List<GameLevel> games;
+  TrainingSession({required this.domainName, required this.games});
+}
+
 // ==================== HOME SCREEN ====================
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -1375,7 +1389,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const GameWorldScreen(),
     const TrainingModeScreen(),
-    ProgressReportScreen(userProfile: userProfile, latestAttempts: {}),
+    ProgressReportScreen(userProfile: userProfile),
     const ProfileScreen(),
   ];
 
@@ -1397,11 +1411,11 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<String> labels = ['Test', 'Training', 'Progress', 'Profile'];
 
   Widget _buildNavItem(
-    int index,
-    IconData icon,
-    IconData selectedIcon,
-    String label,
-  ) {
+      int index,
+      IconData icon,
+      IconData selectedIcon,
+      String label,
+      ) {
     bool isSelected = _selectedIndex == index;
 
     return Expanded(
@@ -1423,18 +1437,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   gradient: isSelected
                       ? const LinearGradient(
-                          colors: [Color(0xFF42A5F5), Color(0xFF1E88E5)],
-                        )
+                    colors: [Color(0xFF42A5F5), Color(0xFF1E88E5)],
+                  )
                       : null,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: isSelected
                       ? [
-                          BoxShadow(
-                            color: const Color(0xFF42A5F5).withOpacity(0.4),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
+                    BoxShadow(
+                      color: const Color(0xFF42A5F5).withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
                       : [],
                 ),
                 child: Icon(
@@ -1512,34 +1526,684 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+// ADD this structure in main.txt, outside of any other class.
 
-class TrainingModeScreen extends StatelessWidget {
-  const TrainingModeScreen({Key? key}) : super(key: key);
+// LIST OF ALL 35 GAMES (Including the 25 training games)
+final List<GameLevel> allTrainingGames = [
+  // IDs 1-10 (Preliminary Assessment)
+  GameLevel(1, 'Trail Making', 'Task switching & sequencing', Icons.timeline),
+  GameLevel(2, 'Wisconsin Card Sorting', 'Cognitive flexibility', Icons.dashboard),
+  GameLevel(3, 'Tower of London', 'Planning & problem-solving', Icons.account_balance),
+  GameLevel(4, 'Corsi Block-Tapping', 'Spatial memory', Icons.grid_3x3),
+  GameLevel(5, 'Digit Span', 'Verbal working memory', Icons.dialpad),
+  GameLevel(6, 'Continuous Performance', 'Sustained attention', Icons.track_changes),
+  GameLevel(7, 'Selective Attention', 'Focus under distraction', Icons.search),
+  GameLevel(8, 'Symbol Digit', 'Information processing', Icons.psychology),
+  GameLevel(9, 'Reaction Time', 'Reflexes & accuracy', Icons.flash_on),
+  GameLevel(10, 'Raven\'s Matrices', 'Pattern recognition', Icons.pattern),
+
+  // IDs 11-15: Executive Function (Training)
+  GameLevel(11, 'Logic Gates Challenge', 'Non-sequential rule deduction', Icons.mediation),
+  GameLevel(12, 'Labyrinth Planner', 'Pre-emptive planning speed', Icons.route),
+  GameLevel(13, 'Go/No-Go Extreme', 'Response suppression under load', Icons.stop_circle),
+  GameLevel(14, 'Category Switch Task', 'Rapid alternating rules', Icons.swap_horiz),
+  GameLevel(15, 'Reverse Stroop', 'Inhibiting word meaning', Icons.text_fields),
+
+  // IDs 16-20: Working Memory (Training)
+  GameLevel(16, 'Dual N-Back Task', 'Auditory & spatial load', Icons.compare_arrows_outlined),
+  GameLevel(17, 'Path Reversal', 'Visuospatial memory & reversal', Icons.flip),
+  GameLevel(18, 'Sentence Span', 'Verbal memory encoding', Icons.speaker_notes),
+  GameLevel(19, 'Object Location Recall', 'Binding visual memory', Icons.pin_drop),
+  GameLevel(20, 'Sequence Repeater', 'Auditory sequence recall', Icons.music_note),
+
+  // IDs 21-25: Attention (Training)
+  GameLevel(21, 'Flanker Task', 'Ignoring flanker conflict', Icons.arrow_right_alt),
+  GameLevel(22, 'Sustained Vigilance', 'Low-frequency target detection', Icons.schedule),
+  GameLevel(23, 'Visual Cancellation', 'Systematic visual scanning', Icons.grid_on),
+  GameLevel(24, 'Dichotic Listening', 'Auditory selective filtering', Icons.hearing),
+  GameLevel(25, 'Rapid Stimulus Detection', 'Simple alert response', Icons.speed),
+
+  // IDs 26-30: Processing Speed (Training)
+  GameLevel(26, 'Pattern Matching Blitz', 'Complex pattern comparison speed', Icons.compare),
+  GameLevel(27, 'Color/Shape Search', 'Single-feature visual search', Icons.format_color_fill),
+  GameLevel(28, 'Letter/Number Transposition', 'Dual-category response speed', Icons.sort),
+  GameLevel(29, 'Finger Tapping Rate', 'Base motor speed test', Icons.thumb_up),
+  GameLevel(30, 'Arithmetic Speed Test', 'Quick calculation validation', Icons.functions),
+
+  // IDs 31-35: Abstract Reasoning (Training)
+  GameLevel(31, 'Inductive Rule Finder', 'Predictive pattern generalization', Icons.trending_up),
+  GameLevel(32, 'Deductive Syllogisms', 'Logical argument validation', Icons.gavel),
+  GameLevel(33, 'Visual Analogy Test', 'Relational transformation', Icons.account_tree),
+  GameLevel(34, 'Number Pattern Predictor', 'Complex numerical sequences', Icons.calculate),
+  GameLevel(35, 'Block Folding (Rotation)', '3D spatial manipulation', Icons.auto_mode),
+];
+
+// Location in main.txt: Immediately before or after source 1311
+
+List<DomainScore> _calculateAllDomainScores(
+    Map<int, List<GameAttempt>> gameAttempts) { // Takes only gameAttempts map
+
+  // 1. Initialize all 5 Domains using the global domainGameMapping
+  List<DomainScore> domains = [
+    DomainScore(name: 'Executive Function', emoji: '🧠', relatedGames: domainGameMapping['Executive Function']!),
+    DomainScore(name: 'Working Memory', emoji: '💾', relatedGames: domainGameMapping['Working Memory']!),
+    DomainScore(name: 'Attention', emoji: '👁️', relatedGames: domainGameMapping['Attention']!),
+    DomainScore(name: 'Processing Speed', emoji: '⚡', relatedGames: domainGameMapping['Processing Speed']!),
+    DomainScore(name: 'Abstract Reasoning', emoji: '🎯', relatedGames: domainGameMapping['Abstract Reasoning']!),
+  ];
+
+  // 2. Aggregate scores for each domain
+  for (var domain in domains) {
+    double totalAccuracy = 0.0;
+    double totalScore = 0.0;
+    int count = 0; // Counts the number of unique games completed in this domain
+
+    for (int gameId in domain.relatedGames) {
+      if (gameAttempts.containsKey(gameId)) {
+        var attempts = gameAttempts[gameId]!;
+        if (attempts.isNotEmpty) {
+          // Use the latest attempt's score and accuracy for the domain average
+          totalAccuracy += attempts.last.accuracy;
+          totalScore += attempts.last.score;
+          count++;
+        }
+      }
+    }
+
+    // 3. Set the average domain scores (only for domains with data)
+    if (count > 0) {
+      domain.avgAccuracy = totalAccuracy / count;
+      domain.avgScore = totalScore / count;
+    }
+  }
+  return domains;
+}
+
+class WeakDomainGraph extends StatelessWidget {
+  final DomainScore domain;
+  const WeakDomainGraph({super.key, required this.domain});
+
+  // Helper to calculate domain score from a subset of attempts
+  double _calculateDomainScoreFromHistory(String domainName, Map<int, List<GameAttempt>> history) {
+    // Assuming domainGameMapping is a global/accessible variable
+    List<int> relatedIds = domainGameMapping[domainName] ?? [];
+    double totalScore = 0.0;
+    int count = 0;
+
+    for (int gameId in relatedIds) {
+      if (history.containsKey(gameId) && history[gameId]!.isNotEmpty) {
+        // Only consider the LATEST attempt for that game ID within the historical slice
+        totalScore += history[gameId]!.last.score;
+        count++;
+      }
+    }
+    return count > 0 ? totalScore / count : 0.0;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('Training Mode Screen')));
+    if (userProfile.gameAttempts.isEmpty) {
+      return Container(height: 150, alignment: Alignment.center, child: Text('No game data available yet.', style: TextStyle(color: Colors.grey.shade600)));
+    }
+
+    // 1. Get attempts for the specific domain's games (IDs 11-35 only)
+    List<GameAttempt> domainAttempts = [];
+    // Only look at training games (ID > 10) for the improvement graph
+    for (int id in domain.relatedGames.where((id) => id > 10)) {
+      if (userProfile.gameAttempts.containsKey(id)) {
+        domainAttempts.addAll(userProfile.gameAttempts[id]!);
+      }
+    }
+
+    // Sort by timestamp for chronological plotting
+    domainAttempts.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    if (domainAttempts.length < 2) {
+      return Container(
+        height: 150,
+        alignment: Alignment.center,
+        child: Text('Play more training games to track improvement.', style: TextStyle(color: Colors.grey.shade600)),
+      );
+    }
+
+    // 2. Calculate Cumulative Domain Score (for graph line)
+    List<double> cumulativeScores = [];
+
+    for (int i = 0; i < domainAttempts.length; i++) {
+      // Collect all attempts up to the current one
+      Map<int, List<GameAttempt>> history = {};
+      for(int j = 0; j <= i; j++) {
+        GameAttempt currentAttempt = domainAttempts[j];
+        // Ensure we update history correctly, taking the last attempt per game ID
+        history.putIfAbsent(currentAttempt.gameId, () => []).add(currentAttempt);
+      }
+
+      // Calculate the Domain Score using the history
+      double currentDomainAvg = _calculateDomainScoreFromHistory(domain.name, history);
+      cumulativeScores.add(currentDomainAvg);
+    }
+
+    // Determine chart color based on overall progress
+    Color chartColor = domain.avgScore >= 3.0 ? Colors.green.shade600 : Colors.red.shade600;
+
+    return Container(
+      height: 200,
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+      ),
+      child: CustomPaint(
+        painter: WeakDomainGraphPainter(
+          scores: cumulativeScores,
+          maxScore: 5.0,
+          themeColor: chartColor,
+        ),
+        child: Container(),
+      ),
+    );
   }
 }
 
-//progresss
+// DATA MODEL FOR THE TRAINING SESSION
+// ==================== TRAINING MODE SCREEN (ADAPTIVE HUB) - FIXED ====================
 
-class ProgressReportScreen extends StatefulWidget {
-  final UserProfile userProfile;
-  final Map<int, GameAttempt?> latestAttempts;
-
-  const ProgressReportScreen({
-    Key? key,
-    required this.userProfile,
-    required this.latestAttempts,
-  }) : super(key: key);
+class TrainingModeScreen extends StatefulWidget {
+  const TrainingModeScreen({Key? key}) : super(key: key);
 
   @override
-  State<ProgressReportScreen> createState() => _ProgressReportScreenState();
+  State<TrainingModeScreen> createState() => _TrainingModeScreenState();
+}
+
+class _TrainingModeScreenState extends State<TrainingModeScreen> {
+  String _weakestDomainName = 'Executive Function';
+  DomainScore? _weakestDomain;
+  // FIX: Use TrainingSession model to hold the 3 specific games
+  TrainingSession? _currentSession;
+
+  bool _isLoading = true;
+  bool _hasCompletedPreliminary = false;
+
+  // The 10 preliminary game IDs (IDs 1-10)
+  final List<int> _preliminaryGameIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  @override
+  void initState() {
+    super.initState();
+    // Use addPostFrameCallback to delay analysis until userProfile is fully stable
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _analyzeCognitiveProfile();
+    });
+  }
+
+  @override
+  void dispose() {
+    // Ensure you handle stream/timer disposal if any were introduced
+    super.dispose();
+  }
+
+  // AIL Logic: Implements Domain Score Calculation & Adaptive Selection
+  void _analyzeCognitiveProfile() {
+    // 1. Check Gating (MODIFIED FOR TESTING)
+
+    // Check if ANY game data exists. If not, trigger the bypass simulation.
+    bool hasAnyGameData = userProfile.gameAttempts.isNotEmpty;
+    bool hasCompletedPreliminaryAssessment = userProfile.gameAttempts.keys.toSet().containsAll(_preliminaryGameIds);
+
+    if (!hasAnyGameData && !hasCompletedPreliminaryAssessment) {
+      // --- BYPASS BLOCK: Run MOCK Data for instant unlock ---
+
+      // 1. Simulate data (Executive Function = weakest)
+      Map<int, List<GameAttempt>> mockAttempts = {};
+      for (int i = 1; i <= 35; i++) {
+        mockAttempts[i] = [
+          GameAttempt(
+              gameId: i, gameName: 'Game $i',
+              // Executive Function (IDs 11-15) simulated as weak (Score 1.5)
+              score: (i >= 11 && i <= 15) ? 1.5 : 3.5 + (i % 5) * 0.1,
+              accuracy: 75.0,
+              reactionTime: 800, timestamp: DateTime.now(),
+              difficulty: 'Medium', benchmarkReactionTime: 1000
+          )
+        ];
+      }
+
+      // 2. Calculate domains using MOCK data
+      List<DomainScore> allDomains = _calculateAllDomainScores(mockAttempts);
+
+      // 3. Find weakest (Executive Function)
+      allDomains.removeWhere((d) => d.avgScore == 0.0);
+      allDomains.sort((a, b) => a.avgScore.compareTo(b.avgScore));
+      DomainScore weakest = allDomains.first;
+
+      // 4. Select 3 random games from the weakest domain (EF)
+      List<GameLevel> allWeakDomainTrainingGames = allTrainingGames
+          .where((game) => weakest.relatedGames.contains(game.id) && game.id > 10)
+          .toList();
+
+      final random = Random();
+      allWeakDomainTrainingGames.shuffle(random);
+      List<GameLevel> sessionGames = allWeakDomainTrainingGames.take(3).toList();
+
+      setState(() {
+        _hasCompletedPreliminary = true; // FORCED UNLOCK
+        _weakestDomainName = weakest.name;
+        _weakestDomain = weakest;
+        _currentSession = TrainingSession(
+          domainName: weakest.name,
+          games: sessionGames,
+        );
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // -----------------------------------------------------------
+    // --- PRODUCTION BLOCK: Runs if real data exists ---
+    // -----------------------------------------------------------
+
+    if (!hasCompletedPreliminaryAssessment) {
+      // This is the true lock state if the user started but didn't finish all 10
+      setState(() {
+        _hasCompletedPreliminary = false;
+        _isLoading = false;
+        _weakestDomainName = 'Executive Function'; // Placeholder
+      });
+      return;
+    }
+
+    // If the 10 preliminary games ARE completed (real data used):
+    _hasCompletedPreliminary = true;
+
+    // 2. Calculate ALL Domain Scores
+    List<DomainScore> allDomains = _calculateAllDomainScores(userProfile.gameAttempts);
+
+    // 3. Find D_weak (Lowest Score) - Core Adaptive Logic
+    allDomains.removeWhere((d) => d.avgScore == 0.0);
+    allDomains.sort((a, b) => a.avgScore.compareTo(b.avgScore));
+
+    DomainScore weakest = allDomains.first; // The lowest scoring domain
+
+    // 4. Filter Training Games (IDs 11-35) for D_weak
+    List<GameLevel> allWeakDomainTrainingGames = allTrainingGames
+        .where((game) => weakest.relatedGames.contains(game.id) && game.id > 10)
+        .toList();
+
+    // 5. Select 3 Random Games for Session (The adaptive recommendation)
+    final random = Random();
+    allWeakDomainTrainingGames.shuffle(random);
+    List<GameLevel> sessionGames = allWeakDomainTrainingGames.take(3).toList();
+
+    setState(() {
+      _weakestDomainName = weakest.name;
+      _weakestDomain = weakest;
+      _currentSession = TrainingSession(
+        domainName: weakest.name,
+        games: sessionGames,
+      );
+      _isLoading = false;
+    });
+  }
+
+  // AIL Logic: Implements Adaptive Difficulty based on LV
+  String _getDifficultyLevel(int gameId) {
+    // SIMULATION (Simplified LV Logic: Uses last score to set adaptive difficulty)
+    if (!userProfile.gameAttempts.containsKey(gameId) || userProfile.gameAttempts[gameId]!.isEmpty) {
+      return 'Medium';
+    }
+    // Get score of the LAST attempt for this specific game
+    double lastScore = userProfile.gameAttempts[gameId]!.last.score;
+
+    // Difficulty logic based on the user's latest performance in that specific game:
+    if (lastScore >= 4.1) return 'Expert';
+    if (lastScore >= 3.5) return 'Hard';
+    if (lastScore >= 2.5) return 'Medium';
+    return 'Easy';
+  }
+
+  // Session Management: Starts the first game and manages the sequence
+  void _startSessionGame(int gameIndex) {
+    if (_currentSession == null || _currentSession!.games.isEmpty) return;
+
+    if (gameIndex >= _currentSession!.games.length) {
+      // Session complete
+      _showSessionCompleteDialog();
+      return;
+    }
+
+    GameLevel nextGame = _currentSession!.games[gameIndex];
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => GameScreen(gameLevel: nextGame),
+      ),
+    ).then((_) {
+      // After a game returns (user completes or quits), immediately start the next game
+      _startSessionGame(gameIndex + 1);
+    });
+  }
+
+  void _showSessionCompleteDialog() {
+    // Show dialog after the user finishes the 3 recommended games
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('🎉 Training Session Complete!'),
+        content: Text('You\'ve finished your focus training for $_weakestDomainName. Check the Progress Report to see the impact on your score.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Re-analyze profile to potentially find a new weakest domain for the next session
+              _analyzeCognitiveProfile();
+            },
+            child: const Text('Great!'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // --- GATING LOGIC ---
+    if (!_hasCompletedPreliminary) {
+      return _buildLockedScreen();
+    }
+
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFE0F7FA), Color(0xFFB3E5FC)],
+        ),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. HEADER & ADAPTIVE FOCUS CARD
+              _buildAdaptiveFocusCard(),
+              const SizedBox(height: 28),
+
+              // 2. D_WEAK DOMAIN PERFORMANCE BAR
+              if (_weakestDomain != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: DomainScoreBar(domain: _weakestDomain!),
+                ),
+
+              const SizedBox(height: 16),
+
+              // NEW: Session Start Button
+              if (_currentSession != null && _currentSession!.games.isNotEmpty)
+                _buildStartSessionButton(),
+
+              const SizedBox(height: 24),
+
+              Text(
+                'Focus Session: $_weakestDomainName Mastery',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueGrey.shade700,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // 3. RECOMMENDED GAMES LIST (The 3 Games in the Session)
+              ..._currentSession!.games.asMap().entries.map((entry) {
+                int index = entry.key;
+                GameLevel game = entry.value;
+                return _buildTrainingGameCard(game, index: index);
+              }).toList(),
+
+              const SizedBox(height: 32),
+
+              // NEW GRAPH AREA
+              Text(
+                'Weak Domain Improvement Tracker',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blueGrey.shade500,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // FIX: Only show graph if domain data exists
+              if (_weakestDomain != null)
+                WeakDomainGraph(domain: _weakestDomain!),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- UI Helpers ---
+
+  Widget _buildLockedScreen() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFE0F7FA), Color(0xFFB3E5FC)],
+        ),
+      ),
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.lock_outline_rounded, size: 80, color: Colors.blue.shade400),
+                const SizedBox(height: 20),
+                const Text(
+                  'Training Locked',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Please complete the 10 preliminary assessment games in the "Test" tab to unlock your personalized training plan.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.blueGrey.shade700),
+                ),
+                const SizedBox(height: 40),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // This assumes the HomeScreen handles bottom navigation state via popUntil
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  icon: const Icon(Icons.psychology_outlined),
+                  label: const Text('Go to Assessment'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade600,
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    foregroundColor: Colors.white,
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStartSessionButton() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        boxShadow: [BoxShadow(color: Colors.green.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))],
+      ),
+      child: ElevatedButton.icon(
+        onPressed: () => _startSessionGame(0),
+        icon: const Icon(Icons.play_circle_fill_rounded, size: 30),
+        label: Text('Start ${_weakestDomainName} Session (${_currentSession!.games.length} Games)', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green.shade600,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdaptiveFocusCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF42A5F5), Color(0xFF1E88E5)], // Focus Gradient
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.5),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Your Training Focus Today:',
+            style: TextStyle(fontSize: 16, color: Colors.white70),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '🎯 ${_weakestDomain?.emoji ?? ''} $_weakestDomainName Mastery',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'You are focused on your lowest scoring domain. Complete the session to see improvement!',
+            style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.9)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrainingGameCard(GameLevel game, {int? index}) {
+    // Difficulty set by LV logic
+    final currentDifficulty = _getDifficultyLevel(game.id);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.blue.shade100,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Index/Icon
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade400, Colors.blue.shade700],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Center(
+              child: index != null ?
+              Text('#${index + 1}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white))
+                  : Icon(game.icon, color: Colors.white, size: 28),
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  game.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E3A8A),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  game.description,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF3B4F7C),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Difficulty Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              currentDifficulty,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.green.shade700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
+
+  // Helper method to determine simplified classification (used for the Level card)
+  String _getShortClassification() {
+    String full = userProfile.getClassification();
+    if (full.contains('Group 1')) return 'Beginner';
+    if (full.contains('Group 2')) return 'Improving';
+    if (full.contains('Group 3')) return 'Good';
+    return 'Expert'; // Group 4
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1568,45 +2232,7 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       const SizedBox(height: 40),
                       // Beautiful User Avatar with Glow Effect
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.white.withOpacity(0.3),
-                              blurRadius: 20,
-                              spreadRadius: 5,
-                            ),
-                          ],
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.white.withOpacity(0.8),
-                                Colors.white.withOpacity(0.4),
-                              ],
-                            ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 60,
-                            backgroundColor: Colors.white,
-                            child: CircleAvatar(
-                              radius: 56,
-                              backgroundColor: const Color(0xFF2193B0),
-                              child: const Icon(
-                                Icons.person,
-                                size: 60,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      _buildUserAvatar(),
                       const SizedBox(height: 16),
                       Text(
                         userProfile.name,
@@ -1712,55 +2338,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 15,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          _buildModernSettingItem(
-                            Icons.notifications_active,
-                            'Notifications',
-                            'Manage your alerts',
-                            const Color(0xFFFF6B6B),
-                            () {},
-                          ),
-                          _buildDivider(),
-                          _buildModernSettingItem(
-                            Icons.language,
-                            'Language',
-                            'Select your language',
-                            const Color(0xFF4ECDC4),
-                            () {},
-                          ),
-                          _buildDivider(),
-                          _buildModernSettingItem(
-                            Icons.help_outline,
-                            'Help & Support',
-                            'Get assistance',
-                            const Color(0xFF45B7D1),
-                            () {},
-                          ),
-                          _buildDivider(),
-                          _buildModernSettingItem(
-                            Icons.info_outline,
-                            'About',
-                            'App information',
-                            const Color(0xFF96CEB4),
-                            () {},
-                            isLast: true,
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildSettingsList(),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -1772,20 +2350,56 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  String _getShortClassification() {
-    String full = userProfile.getClassification();
-    if (full.contains('Group 1')) return 'Beginner';
-    if (full.contains('Group 2')) return 'Improving';
-    if (full.contains('Group 3')) return 'Good';
-    return 'Excellent';
+  // --- Helper Widgets ---
+
+  Widget _buildUserAvatar() {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withOpacity(0.3),
+            blurRadius: 20,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white.withOpacity(0.8),
+              Colors.white.withOpacity(0.4),
+            ],
+          ),
+        ),
+        child: CircleAvatar(
+          radius: 60,
+          backgroundColor: Colors.white,
+          child: CircleAvatar(
+            radius: 56,
+            backgroundColor: const Color(0xFF2193B0),
+            child: const Icon(
+              Icons.person,
+              size: 60,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildGradientStatCard(
-    String label,
-    String value,
-    IconData icon,
-    List<Color> colors,
-  ) {
+      String label,
+      String value,
+      IconData icon,
+      List<Color> colors,
+      ) {
     return Container(
       height: 140,
       decoration: BoxDecoration(
@@ -1854,14 +2468,73 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildSettingsList() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildModernSettingItem(
+            Icons.notifications_active,
+            'Notifications',
+            'Manage your alerts',
+            const Color(0xFFFF6B6B),
+                () => {/* Handle Tap */},
+          ),
+          _buildDivider(),
+          _buildModernSettingItem(
+            Icons.language,
+            'Language',
+            'Select your language',
+            const Color(0xFF4ECDC4),
+                () => {/* Handle Tap */},
+          ),
+          _buildDivider(),
+          _buildModernSettingItem(
+            Icons.help_outline,
+            'Help & Support',
+            'Get assistance',
+            const Color(0xFF45B7D1),
+                () => {/* Handle Tap */},
+          ),
+          _buildDivider(),
+          _buildModernSettingItem(
+            Icons.info_outline,
+            'About',
+            'App information',
+            const Color(0xFF96CEB4),
+                () => {/* Handle Tap */},
+            isLast: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Divider(height: 1, color: Colors.grey[200]),
+    );
+  }
+
   Widget _buildModernSettingItem(
-    IconData icon,
-    String title,
-    String subtitle,
-    Color iconColor,
-    VoidCallback onTap, {
-    bool isLast = false,
-  }) {
+      IconData icon,
+      String title,
+      String subtitle,
+      Color iconColor,
+      VoidCallback onTap, {
+        bool isLast = false,
+      }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.vertical(
@@ -1907,57 +2580,94 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Divider(height: 1, color: Colors.grey[200]),
-    );
-  }
 }
 
+// ADD this painter class next to the WeakDomainGraph widget
+class WeakDomainGraphPainter extends CustomPainter {
+  final List<double> scores;
+  final double maxScore;
+  final Color themeColor;
+
+  WeakDomainGraphPainter({
+    required this.scores,
+    required this.maxScore,
+    required this.themeColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (scores.length < 2) return;
+
+    final paint = Paint()
+      ..color = themeColor.withOpacity(0.8)
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final minScore = scores.reduce(min).clamp(0.0, 5.0);
+    final maxPlotScore = scores.reduce(max).clamp(0.0, 5.0);
+    // Determine range, clamping to a minimum of 0.5 to prevent plotting issues if all scores are identical
+    double scoreRange = (maxPlotScore - minScore) < 0.5 ? 0.5 : (maxPlotScore - minScore);
+
+    final path = Path();
+
+    // 1. Draw horizontal line at the 3.0 average baseline
+    final gridPaint = Paint()
+      ..color = Colors.grey.shade300
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    // Calculate 3.0 baseline position relative to the dynamic min/max plot range
+    double normalizedBaseline = (3.0 - minScore) / scoreRange;
+    double baselineY = size.height - (normalizedBaseline * size.height).clamp(0, size.height);
+    canvas.drawLine(Offset(0, baselineY), Offset(size.width, baselineY), gridPaint);
+
+
+    // 2. Draw the score line
+    for (int i = 0; i < scores.length; i++) {
+      double x = (i / (scores.length - 1)) * size.width;
+      // Normalize score based on calculated range
+      double normalizedY = (scores[i] - minScore) / scoreRange;
+      double y = size.height - (normalizedY * size.height).clamp(0, size.height); // Invert Y for canvas
+
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+
+    // Draw path
+    canvas.drawPath(path, paint);
+
+    // 3. Draw points
+    final pointPaint = Paint()..color = themeColor;
+    for (int i = 0; i < scores.length; i++) {
+      double x = (i / (scores.length - 1)) * size.width;
+      double normalizedY = (scores[i] - minScore) / scoreRange;
+      double y = size.height - (normalizedY * size.height).clamp(0, size.height);
+      canvas.drawCircle(Offset(x, y), 4, pointPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(WeakDomainGraphPainter oldDelegate) => true;
+}
 // ==================== GAME WORLD SCREEN ====================
 
 class GameWorldScreen extends StatefulWidget {
-  const GameWorldScreen({Key? key}) : super(key: key);
+  const GameWorldScreen({super.key});
 
   @override
   State<GameWorldScreen> createState() => _GameWorldScreenState();
 }
 
 class _GameWorldScreenState extends State<GameWorldScreen> {
-  final List<GameLevel> games = [
-    GameLevel(1, 'Trail Making', 'Task switching & sequencing', Icons.timeline),
-    GameLevel(
-      2,
-      'Wisconsin Card Sorting',
-      'Cognitive flexibility',
-      Icons.dashboard,
-    ),
-    GameLevel(
-      3,
-      'Tower of London',
-      'Planning & problem-solving',
-      Icons.account_balance,
-    ),
-    GameLevel(4, 'Corsi Block-Tapping', 'Spatial memory', Icons.grid_3x3),
-    GameLevel(5, 'Digit Span', 'Verbal working memory', Icons.dialpad),
-    GameLevel(
-      6,
-      'Continuous Performance',
-      'Sustained attention',
-      Icons.track_changes,
-    ),
-    GameLevel(
-      7,
-      'Selective Attention',
-      'Focus under distraction',
-      Icons.search,
-    ),
-    GameLevel(8, 'Symbol Digit', 'Information processing', Icons.psychology),
-    GameLevel(9, 'Reaction Time', 'Reflexes & accuracy', Icons.flash_on),
-    GameLevel(10, 'Raven\'s Matrices', 'Pattern recognition', Icons.pattern),
-  ];
+  // Inside _GameWorldScreenState
+// UPDATE the games list to only include IDs 1-10 (Preliminary Assessment)
+  final List<GameLevel> games = allTrainingGames
+      .where((game) => game.id <= 10)
+      .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -2133,7 +2843,7 @@ class _GameWorldScreenState extends State<GameWorldScreen> {
                     ),
                   ),
                 );
-              }).toList(),
+              }),
             ],
           ),
         ),
@@ -2155,7 +2865,7 @@ class GameLevel {
 class DomainScoreBar extends StatelessWidget {
   final DomainScore domain;
 
-  const DomainScoreBar({Key? key, required this.domain}) : super(key: key);
+  const DomainScoreBar({super.key, required this.domain});
 
   @override
   Widget build(BuildContext context) {
@@ -2220,10 +2930,10 @@ class GameProgressItem extends StatelessWidget {
   final double learningVelocity;
 
   const GameProgressItem({
-    Key? key,
+    super.key,
     required this.attempt,
     required this.learningVelocity,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -2283,8 +2993,8 @@ class GameProgressItem extends StatelessWidget {
                 isNeutral
                     ? Icons.trending_flat
                     : (isPositiveTrend
-                          ? Icons.trending_up
-                          : Icons.trending_down),
+                    ? Icons.trending_up
+                    : Icons.trending_down),
                 color: isNeutral
                     ? Colors.grey
                     : (isPositiveTrend ? Colors.green : Colors.red),
@@ -2314,10 +3024,10 @@ class FinalReportScreen extends StatefulWidget {
   final List<DomainScore> domains;
 
   const FinalReportScreen({
-    Key? key,
+    super.key,
     required this.userProfile,
     required this.domains,
-  }) : super(key: key);
+  });
 
   @override
   State<FinalReportScreen> createState() => _FinalReportScreenState();
@@ -2510,7 +3220,7 @@ class _FinalReportScreenState extends State<FinalReportScreen>
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -2553,7 +3263,7 @@ class _FinalReportScreenState extends State<FinalReportScreen>
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -2596,7 +3306,7 @@ class _FinalReportScreenState extends State<FinalReportScreen>
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -2748,8 +3458,8 @@ class _FinalReportScreenState extends State<FinalReportScreen>
         .take(3)
         .map(
           (d) =>
-              '${d.emoji} ${d.name}: ${(d.avgScore / 5.0 * 100).toStringAsFixed(0)}%',
-        )
+      '${d.emoji} ${d.name}: ${(d.avgScore / 5.0 * 100).toStringAsFixed(0)}%',
+    )
         .toList();
   }
 
@@ -2760,8 +3470,8 @@ class _FinalReportScreenState extends State<FinalReportScreen>
         .take(2)
         .map(
           (d) =>
-              'Focus on improving ${d.name} (currently at ${(d.avgScore / 5.0 * 100).toStringAsFixed(0)}%)',
-        )
+      'Focus on improving ${d.name} (currently at ${(d.avgScore / 5.0 * 100).toStringAsFixed(0)}%)',
+    )
         .toList();
   }
 
@@ -2782,8 +3492,7 @@ class _FinalReportScreenState extends State<FinalReportScreen>
 class ProgressGraphWidget extends StatelessWidget {
   final UserProfile userProfile;
 
-  const ProgressGraphWidget({Key? key, required this.userProfile})
-    : super(key: key);
+  const ProgressGraphWidget({super.key, required this.userProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -2929,7 +3638,7 @@ class ProgressGraphPainter extends CustomPainter {
 class GameScreen extends StatefulWidget {
   final GameLevel gameLevel;
 
-  const GameScreen({Key? key, required this.gameLevel}) : super(key: key);
+  const GameScreen({super.key, required this.gameLevel});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -3126,6 +3835,21 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
+// Location in gam.txt: Immediately before the State class definition
+
+class ProgressReportScreen extends StatefulWidget {
+  final UserProfile userProfile;
+  // NOTE: Removed 'final Map<int, GameAttempt?> latestAttempts'
+
+  const ProgressReportScreen({
+    super.key,
+    required this.userProfile,
+    // Removed required this.latestAttempts,
+  });
+
+  @override
+  State<ProgressReportScreen> createState() => _ProgressReportScreenState();
+}
 // ========== STEP 5: REPLACE ProgressReportScreen ==========
 
 class _ProgressReportScreenState extends State<ProgressReportScreen>
@@ -3483,13 +4207,13 @@ class _ProgressReportScreenState extends State<ProgressReportScreen>
   }
 
   Widget _buildMetricCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-    Color bgColor,
-    String subtitle,
-  ) {
+      String title,
+      String value,
+      IconData icon,
+      Color color,
+      Color bgColor,
+      String subtitle,
+      ) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -3674,9 +4398,9 @@ class _ProgressReportScreenState extends State<ProgressReportScreen>
   }
 
   Widget _buildOverallPerformanceCard(
-    double cumulativeScore,
-    String classification,
-  ) {
+      double cumulativeScore,
+      String classification,
+      ) {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -3859,7 +4583,7 @@ class _ProgressReportScreenState extends State<ProgressReportScreen>
                 },
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -3991,7 +4715,7 @@ class _ProgressReportScreenState extends State<ProgressReportScreen>
                   ),
                 ),
               );
-            }).toList(),
+            }),
         ],
       ),
     );
@@ -4078,24 +4802,25 @@ class _ProgressReportScreenState extends State<ProgressReportScreen>
 }
 
 // ==================== GAME RENDERER ====================
+// Location: Replace your existing GameRenderer class definition entirely
+
 class GameRenderer extends StatelessWidget {
   final GameEngine gameEngine;
   final GameLevel gameLevel;
   final GameState state;
-
   const GameRenderer({
-    Key? key,
+    super.key,
     required this.gameEngine,
     required this.gameLevel,
     required this.state,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     switch (gameLevel.id) {
+    // PHASE 1 GAMES (1-10) - PRELIMINARY ASSESSMENT
       case 1:
         return TrailMakingGame(gameEngine: gameEngine);
-        ;
       case 2:
         return WisconsinCardSortingGame(gameEngine: gameEngine);
       case 3:
@@ -4114,8 +4839,71 @@ class GameRenderer extends StatelessWidget {
         return ReactionTimeGame(gameEngine: gameEngine);
       case 10:
         return RavensMatricesGame(gameEngine: gameEngine);
+
+    // PHASE 2 TRAINING GAMES (11-35) - CRITICAL FIX
+    // 11-15: Executive Function
+      case 11:
+        return LogicGatesGame(gameEngine: gameEngine);
+      case 12:
+        return LabyrinthPlannerGame(gameEngine: gameEngine);
+      case 13:
+        return GoNoGoExtremeGame(gameEngine: gameEngine);
+      case 14:
+        return CategorySwitchGame(gameEngine: gameEngine);
+      case 15:
+        return ReverseStroopGame(gameEngine: gameEngine);
+
+    // 16-20: Working Memory
+      case 16:
+        return DualNBackGame(gameEngine: gameEngine);
+      case 17:
+        return PathReversalGame(gameEngine: gameEngine);
+      case 18:
+        return SentenceSpanGame(gameEngine: gameEngine);
+      case 19:
+        return ObjectLocationRecallGame(gameEngine: gameEngine);
+      case 20:
+        return SequenceRepeaterGame(gameEngine: gameEngine);
+
+    // 21-25: Attention
+      case 21:
+        return FlankerTaskGame(gameEngine: gameEngine);
+      case 22:
+        return SustainedVigilanceGame(gameEngine: gameEngine);
+      case 23:
+        return VisualCancellationGame(gameEngine: gameEngine);
+      case 24:
+        return DichoticListeningGame(gameEngine: gameEngine);
+      case 25:
+        return RapidStimulusDetectionGame(gameEngine: gameEngine);
+
+    // 26-30: Processing Speed
+      case 26:
+        return PatternMatchingBlitzGame(gameEngine: gameEngine);
+      case 27:
+        return ColorShapeSearchGame(gameEngine: gameEngine);
+      case 28:
+        return LetterNumberTranspositionGame(gameEngine: gameEngine);
+      case 29:
+        return FingerTappingRateGame(gameEngine: gameEngine);
+      case 30:
+        return ArithmeticSpeedGame(gameEngine: gameEngine);
+
+    // 31-35: Abstract Reasoning
+      case 31:
+        return InductiveRuleFinderGame(gameEngine: gameEngine);
+      case 32:
+        return DeductiveSyllogismsGame(gameEngine: gameEngine);
+      case 33:
+        return VisualAnalogyTest(gameEngine: gameEngine);
+      case 34:
+        return NumberPatternPredictorGame(gameEngine: gameEngine);
+      case 35:
+        return BlockFoldingGame(gameEngine: gameEngine);
+
       default:
-        return const Center(child: Text('Game not found'));
+      // This is the line that was being hit.
+        return Center(child: Text('Error: Game ID ${gameLevel.id} not found in GameRenderer.'));
     }
   }
 }
@@ -4129,13 +4917,13 @@ class GameResultScreen extends StatefulWidget {
   final UserProfile userProfile;
 
   const GameResultScreen({
-    Key? key,
+    super.key,
     required this.score,
     required this.accuracy,
     required this.reactionTime,
     required this.gameLevel,
     required this.userProfile,
-  }) : super(key: key);
+  });
 
   @override
   State<GameResultScreen> createState() => _GameResultScreenState();
@@ -4254,7 +5042,7 @@ class _GameResultScreenState extends State<GameResultScreen>
     isPersonalBest = false;
     if (widget.userProfile.gameAttempts.containsKey(widget.gameLevel.id)) {
       var previousAttempts =
-          widget.userProfile.gameAttempts[widget.gameLevel.id]!;
+      widget.userProfile.gameAttempts[widget.gameLevel.id]!;
       if (previousAttempts.isNotEmpty) {
         double previousBest = previousAttempts
             .map((a) => a.score)
@@ -4301,15 +5089,15 @@ class _GameResultScreenState extends State<GameResultScreen>
             end: Alignment.bottomRight,
             colors: widget.score >= 4.0
                 ? [
-                    Colors.purple.shade400,
-                    Colors.blue.shade500,
-                    Colors.cyan.shade400,
-                  ]
+              Colors.purple.shade400,
+              Colors.blue.shade500,
+              Colors.cyan.shade400,
+            ]
                 : [
-                    Colors.blue.shade300,
-                    Colors.lightBlue.shade400,
-                    Colors.cyan.shade300,
-                  ],
+              Colors.blue.shade300,
+              Colors.lightBlue.shade400,
+              Colors.cyan.shade300,
+            ],
           ),
         ),
         child: SafeArea(
@@ -4341,12 +5129,12 @@ class _GameResultScreenState extends State<GameResultScreen>
                                   boxShadow: [
                                     BoxShadow(
                                       color:
-                                          (widget.score >= 4.0
-                                                  ? Colors.amber
-                                                  : Colors.blue)
-                                              .withOpacity(
-                                                _glowAnimation.value * 0.6,
-                                              ),
+                                      (widget.score >= 4.0
+                                          ? Colors.amber
+                                          : Colors.blue)
+                                          .withOpacity(
+                                        _glowAnimation.value * 0.6,
+                                      ),
                                       blurRadius: 30 * _glowAnimation.value,
                                       spreadRadius: 5 * _glowAnimation.value,
                                     ),
@@ -4709,7 +5497,7 @@ class _GameResultScreenState extends State<GameResultScreen>
 
 class TrailMakingGame extends StatefulWidget {
   final GameEngine gameEngine;
-  const TrailMakingGame({Key? key, required this.gameEngine}) : super(key: key);
+  const TrailMakingGame({super.key, required this.gameEngine});
 
   @override
   State<TrailMakingGame> createState() => _TrailMakingGameState();
@@ -4889,38 +5677,38 @@ class _TrailMakingGameState extends State<TrailMakingGame>
 
                         return nodes.isEmpty
                             ? Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.indigo.shade300,
-                                ),
-                              )
+                          child: CircularProgressIndicator(
+                            color: Colors.indigo.shade300,
+                          ),
+                        )
                             : Stack(
-                                children: [
-                                  CustomPaint(
-                                    painter: TrailPainter(
-                                      nodes: nodes,
-                                      currentIndex: currentNodeIndex,
-                                    ),
-                                    size: Size.infinite,
-                                  ),
-                                  ...nodes.asMap().entries.map((entry) {
-                                    int idx = entry.key;
-                                    TrailNode node = entry.value;
-                                    bool isCompleted = idx < currentNodeIndex;
-                                    bool isActive = idx == currentNodeIndex;
+                          children: [
+                            CustomPaint(
+                              painter: TrailPainter(
+                                nodes: nodes,
+                                currentIndex: currentNodeIndex,
+                              ),
+                              size: Size.infinite,
+                            ),
+                            ...nodes.asMap().entries.map((entry) {
+                              int idx = entry.key;
+                              TrailNode node = entry.value;
+                              bool isCompleted = idx < currentNodeIndex;
+                              bool isActive = idx == currentNodeIndex;
 
-                                    return Positioned(
-                                      left: node.position.dx - 30,
-                                      top: node.position.dy - 30,
-                                      child: _buildNode(
-                                        node,
-                                        isCompleted,
-                                        isActive,
-                                        idx,
-                                      ),
-                                    );
-                                  }).toList(),
-                                ],
+                              return Positioned(
+                                left: node.position.dx - 30,
+                                top: node.position.dy - 30,
+                                child: _buildNode(
+                                  node,
+                                  isCompleted,
+                                  isActive,
+                                  idx,
+                                ),
                               );
+                            }),
+                          ],
+                        );
                       },
                     ),
                   ),
@@ -4968,11 +5756,11 @@ class _TrailMakingGameState extends State<TrailMakingGame>
   }
 
   Widget _buildStatCard(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+      String label,
+      String value,
+      IconData icon,
+      Color color,
+      ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -5138,8 +5926,7 @@ class TrailPainter extends CustomPainter {
 class WisconsinCardSortingGame extends StatefulWidget {
   final GameEngine gameEngine;
 
-  const WisconsinCardSortingGame({Key? key, required this.gameEngine})
-    : super(key: key);
+  const WisconsinCardSortingGame({super.key, required this.gameEngine});
 
   @override
   State<WisconsinCardSortingGame> createState() =>
@@ -5269,7 +6056,7 @@ class _WisconsinCardSortingGameState extends State<WisconsinCardSortingGame>
         consecutiveCorrect++;
         feedbackText = "✓ Correct!";
         _feedbackController.forward().then(
-          (_) => _feedbackController.reverse(),
+              (_) => _feedbackController.reverse(),
         );
       } else {
         feedbackText = "✗ Try Again";
@@ -5591,15 +6378,15 @@ class _WisconsinCardSortingGameState extends State<WisconsinCardSortingGame>
             margin: EdgeInsets.only(top: 16),
             decoration: BoxDecoration(
               color:
-                  feedbackText.contains('Correct') ||
-                      feedbackText.contains('Changed')
+              feedbackText.contains('Correct') ||
+                  feedbackText.contains('Changed')
                   ? Colors.green.shade100
                   : Colors.red.shade100,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color:
-                    feedbackText.contains('Correct') ||
-                        feedbackText.contains('Changed')
+                feedbackText.contains('Correct') ||
+                    feedbackText.contains('Changed')
                     ? Colors.green.shade400
                     : Colors.red.shade400,
                 width: 2,
@@ -5611,8 +6398,8 @@ class _WisconsinCardSortingGameState extends State<WisconsinCardSortingGame>
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color:
-                    feedbackText.contains('Correct') ||
-                        feedbackText.contains('Changed')
+                feedbackText.contains('Correct') ||
+                    feedbackText.contains('Changed')
                     ? Colors.green.shade700
                     : Colors.red.shade700,
               ),
@@ -5645,8 +6432,7 @@ class PlayingCard extends StatelessWidget {
   final GameCard card;
   final bool isTarget;
 
-  const PlayingCard({Key? key, required this.card, this.isTarget = false})
-    : super(key: key);
+  const PlayingCard({super.key, required this.card, this.isTarget = false});
 
   @override
   Widget build(BuildContext context) {
@@ -5771,8 +6557,7 @@ class TrianglePainter extends CustomPainter {
 // ==================== GAME: TOWER OF LONDON (COMPLETE FIXED) ====================
 class TowerOfLondonGame extends StatefulWidget {
   final GameEngine gameEngine;
-  const TowerOfLondonGame({Key? key, required this.gameEngine})
-    : super(key: key);
+  const TowerOfLondonGame({super.key, required this.gameEngine});
 
   @override
   State<TowerOfLondonGame> createState() => _TowerOfLondonGameState();
@@ -5830,7 +6615,7 @@ class _TowerOfLondonGameState extends State<TowerOfLondonGame> {
     // Calculate score (0-5)
     double efficiencyScore = movesList.isNotEmpty
         ? movesList.map((m) => m / optimalMoves).reduce((a, b) => a + b) /
-              movesList.length
+        movesList.length
         : 0;
     double levelScore = (levelsCompleted / 5) * 3; // Max 3 points for levels
     double finalScore = ((1 - efficiencyScore) * 2 + levelScore).clamp(
@@ -6048,8 +6833,8 @@ class _TowerOfLondonGameState extends State<TowerOfLondonGame> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: targetConfiguration.asMap().entries.map((
-                          entry,
-                        ) {
+                            entry,
+                            ) {
                           return Flexible(
                             child: TowerPeg(
                               balls: entry.value,
@@ -6329,12 +7114,12 @@ class TowerPeg extends StatelessWidget {
   final bool isSelected;
 
   const TowerPeg({
-    Key? key,
+    super.key,
     required this.balls,
     required this.pegIndex,
     this.isTarget = false,
     this.isSelected = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -6371,7 +7156,7 @@ class TowerPeg extends StatelessWidget {
           Spacer(),
           // Balls (max 3)
           ...balls.reversed.map(
-            (ball) => Container(
+                (ball) => Container(
               width: isTarget ? 32 : 36,
               height: isTarget ? 32 : 36,
               margin: EdgeInsets.only(bottom: isTarget ? 3 : 4),
@@ -6388,12 +7173,12 @@ class TowerPeg extends StatelessWidget {
                 boxShadow: isTarget
                     ? []
                     : [
-                        BoxShadow(
-                          color: _getBallColor(ball).withOpacity(0.4),
-                          blurRadius: 6,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
+                  BoxShadow(
+                    color: _getBallColor(ball).withOpacity(0.4),
+                    blurRadius: 6,
+                    offset: Offset(0, 3),
+                  ),
+                ],
                 border: Border.all(color: Colors.white, width: 2),
               ),
             ),
@@ -6433,7 +7218,7 @@ class TowerPeg extends StatelessWidget {
 // ==================== GAME: CORSI BLOCK TAPPING (COMPLETE FIXED) ====================
 class CorsiBlockGame extends StatefulWidget {
   final GameEngine gameEngine;
-  const CorsiBlockGame({Key? key, required this.gameEngine}) : super(key: key);
+  const CorsiBlockGame({super.key, required this.gameEngine});
 
   @override
   State<CorsiBlockGame> createState() => _CorsiBlockGameState();
@@ -6745,13 +7530,13 @@ class _CorsiBlockGameState extends State<CorsiBlockGame>
                                           end: Alignment.bottomRight,
                                           colors: isHighlighted
                                               ? [
-                                                  Colors.blue.shade400,
-                                                  Colors.blue.shade600,
-                                                ]
+                                            Colors.blue.shade400,
+                                            Colors.blue.shade600,
+                                          ]
                                               : [
-                                                  Colors.grey.shade300,
-                                                  Colors.grey.shade400,
-                                                ],
+                                            Colors.grey.shade300,
+                                            Colors.grey.shade400,
+                                          ],
                                         ),
                                         borderRadius: BorderRadius.circular(12),
                                         boxShadow: [
@@ -6759,8 +7544,8 @@ class _CorsiBlockGameState extends State<CorsiBlockGame>
                                             color: isHighlighted
                                                 ? Colors.blue.withOpacity(0.5)
                                                 : Colors.black.withOpacity(
-                                                    0.15,
-                                                  ),
+                                              0.15,
+                                            ),
                                             blurRadius: isHighlighted ? 15 : 8,
                                             offset: Offset(
                                               0,
@@ -7016,7 +7801,7 @@ class _CorsiBlockGameState extends State<CorsiBlockGame>
 // ==================== GAME: DIGIT SPAN (COMPLETE FIXED) ====================
 class DigitSpanGame extends StatefulWidget {
   final GameEngine gameEngine;
-  const DigitSpanGame({Key? key, required this.gameEngine}) : super(key: key);
+  const DigitSpanGame({super.key, required this.gameEngine});
 
   @override
   State<DigitSpanGame> createState() => _DigitSpanGameState();
@@ -7316,7 +8101,7 @@ class _DigitSpanGameState extends State<DigitSpanGame>
             userInput.isEmpty
                 ? '_ ' * sequence.length
                 : userInput.split('').join(' ') +
-                      (' _' * (sequence.length - userInput.length)),
+                (' _' * (sequence.length - userInput.length)),
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -7427,11 +8212,11 @@ class _DigitSpanGameState extends State<DigitSpanGame>
   }
 
   Widget _buildActionButton(
-    String label,
-    IconData icon,
-    MaterialColor color,
-    VoidCallback onTap,
-  ) {
+      String label,
+      IconData icon,
+      MaterialColor color,
+      VoidCallback onTap,
+      ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -7672,8 +8457,7 @@ class _DigitSpanGameState extends State<DigitSpanGame>
 // ==================== GAME: CONTINUOUS PERFORMANCE TEST (COMPLETE FIXED) ====================
 class ContinuousPerformanceGame extends StatefulWidget {
   final GameEngine gameEngine;
-  const ContinuousPerformanceGame({Key? key, required this.gameEngine})
-    : super(key: key);
+  const ContinuousPerformanceGame({super.key, required this.gameEngine});
 
   @override
   State<ContinuousPerformanceGame> createState() =>
@@ -7919,19 +8703,19 @@ class _ContinuousPerformanceGameState extends State<ContinuousPerformanceGame>
                               end: Alignment.bottomRight,
                               colors: isShowingStimulus
                                   ? (currentLetter == targetLetter
-                                        ? [
-                                            Colors.green.shade300,
-                                            Colors.green.shade500,
-                                          ]
-                                        : [Colors.white, Colors.grey.shade100])
+                                  ? [
+                                Colors.green.shade300,
+                                Colors.green.shade500,
+                              ]
+                                  : [Colors.white, Colors.grey.shade100])
                                   : [Colors.white, Colors.grey.shade100],
                             ),
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
                               color: isShowingStimulus
                                   ? (currentLetter == targetLetter
-                                        ? Colors.green.shade600
-                                        : Colors.grey.shade400)
+                                  ? Colors.green.shade600
+                                  : Colors.grey.shade400)
                                   : Colors.grey.shade300,
                               width: 4,
                             ),
@@ -7939,8 +8723,8 @@ class _ContinuousPerformanceGameState extends State<ContinuousPerformanceGame>
                               BoxShadow(
                                 color: isShowingStimulus
                                     ? (currentLetter == targetLetter
-                                          ? Colors.green.withOpacity(0.4)
-                                          : Colors.black.withOpacity(0.1))
+                                    ? Colors.green.withOpacity(0.4)
+                                    : Colors.black.withOpacity(0.1))
                                     : Colors.black.withOpacity(0.05),
                                 blurRadius: isShowingStimulus ? 20 : 10,
                                 offset: Offset(0, isShowingStimulus ? 8 : 4),
@@ -8215,8 +8999,7 @@ class _ContinuousPerformanceGameState extends State<ContinuousPerformanceGame>
 
 class SelectiveAttentionGame extends StatefulWidget {
   final GameEngine gameEngine;
-  const SelectiveAttentionGame({Key? key, required this.gameEngine})
-    : super(key: key);
+  const SelectiveAttentionGame({super.key, required this.gameEngine});
 
   @override
   State<SelectiveAttentionGame> createState() => _SelectiveAttentionGameState();
@@ -8367,7 +9150,7 @@ class _SelectiveAttentionGameState extends State<SelectiveAttentionGame>
         // Ensure distractor differs from target
         int attempts = 0;
         while ((distractorColor == targetItem!.color &&
-                distractorShape == targetItem!.shape) &&
+            distractorShape == targetItem!.shape) &&
             attempts < 10) {
           distractorColor = colors[random.nextInt(colors.length)];
           distractorShape = shapes[random.nextInt(shapes.length)];
@@ -8499,7 +9282,7 @@ class _SelectiveAttentionGameState extends State<SelectiveAttentionGame>
                           animation: _feedbackController,
                           builder: (context, child) {
                             double scale =
-                                (showCorrectFeedback && item.isTarget)
+                            (showCorrectFeedback && item.isTarget)
                                 ? 1.0 + (_feedbackController.value * 0.2)
                                 : 1.0;
 
@@ -8522,26 +9305,26 @@ class _SelectiveAttentionGameState extends State<SelectiveAttentionGame>
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color:
-                                          (showCorrectFeedback && item.isTarget)
+                                      (showCorrectFeedback && item.isTarget)
                                           ? Colors.green.shade600
                                           : (showWrongFeedback && !searchActive)
                                           ? Colors.red.shade400
                                           : Colors.grey.shade300,
                                       width:
-                                          (showCorrectFeedback && item.isTarget)
+                                      (showCorrectFeedback && item.isTarget)
                                           ? 3
                                           : 2,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
                                         color:
-                                            (showCorrectFeedback &&
-                                                item.isTarget)
+                                        (showCorrectFeedback &&
+                                            item.isTarget)
                                             ? Colors.green.withOpacity(0.4)
                                             : Colors.black.withOpacity(0.1),
                                         blurRadius:
-                                            (showCorrectFeedback &&
-                                                item.isTarget)
+                                        (showCorrectFeedback &&
+                                            item.isTarget)
                                             ? 12
                                             : 6,
                                         offset: Offset(
@@ -8914,7 +9697,7 @@ class SearchItem {
 // ==================== GAME: SYMBOL DIGIT MODALITIES TEST (COMPLETE FIXED) ====================
 class SymbolDigitGame extends StatefulWidget {
   final GameEngine gameEngine;
-  const SymbolDigitGame({Key? key, required this.gameEngine}) : super(key: key);
+  const SymbolDigitGame({super.key, required this.gameEngine});
 
   @override
   State<SymbolDigitGame> createState() => _SymbolDigitGameState();
@@ -9542,8 +10325,7 @@ class _SymbolDigitGameState extends State<SymbolDigitGame>
 // ==================== GAME 9: REACTION TIME TEST ====================
 class ReactionTimeGame extends StatefulWidget {
   final GameEngine gameEngine;
-  const ReactionTimeGame({Key? key, required this.gameEngine})
-    : super(key: key);
+  const ReactionTimeGame({super.key, required this.gameEngine});
 
   @override
   State<ReactionTimeGame> createState() => _ReactionTimeGameState();
@@ -9652,7 +10434,7 @@ class _ReactionTimeGameState extends State<ReactionTimeGame> {
         reactionTimes
             .map((rt) => pow(rt - avgReactionTime, 2).toDouble())
             .reduce((a, b) => a + b) /
-        reactionTimes.length;
+            reactionTimes.length;
     double consistency = 1.0 - (variance / 10000.0).clamp(0.0, 1.0);
 
     // Score based on speed and consistency
@@ -9788,8 +10570,7 @@ class _ReactionTimeGameState extends State<ReactionTimeGame> {
 // ==================== GAME 10: RAVEN'S PROGRESSIVE MATRICES ====================
 class RavensMatricesGame extends StatefulWidget {
   final GameEngine gameEngine;
-  const RavensMatricesGame({Key? key, required this.gameEngine})
-    : super(key: key);
+  const RavensMatricesGame({super.key, required this.gameEngine});
 
   @override
   State<RavensMatricesGame> createState() => _RavensMatricesGameState();
@@ -9911,11 +10692,11 @@ class _RavensMatricesGameState extends State<RavensMatricesGame>
   }
 
   MatrixShape _getShapeByPattern(
-    int row,
-    int col,
-    MatrixShape base,
-    int patternType,
-  ) {
+      int row,
+      int col,
+      MatrixShape base,
+      int patternType,
+      ) {
     if (patternType == 0) {
       // Alternating pattern
       return (row + col) % 2 == 0 ? base : _nextShape(base);
@@ -9946,9 +10727,9 @@ class _RavensMatricesGameState extends State<RavensMatricesGame>
   }
 
   List<MatrixCell> _generateOptionsWithCorrect(
-    MatrixCell correct,
-    Random random,
-  ) {
+      MatrixCell correct,
+      Random random,
+      ) {
     List<MatrixCell> options = [correct];
 
     // Generate 5 distractor options
@@ -9960,7 +10741,7 @@ class _RavensMatricesGameState extends State<RavensMatricesGame>
 
       // Ensure no duplicates
       bool isDuplicate = options.any(
-        (o) => o.shape == distractor.shape && o.color == distractor.color,
+            (o) => o.shape == distractor.shape && o.color == distractor.color,
       );
 
       if (!isDuplicate) {
@@ -10153,18 +10934,18 @@ class _RavensMatricesGameState extends State<RavensMatricesGame>
                 ),
                 child: cell.shape == MatrixShape.empty
                     ? Center(
-                        child: Text(
-                          '?',
-                          style: TextStyle(
-                            fontSize: 36, // Reduced from 48
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple.shade400,
-                          ),
-                        ),
-                      )
+                  child: Text(
+                    '?',
+                    style: TextStyle(
+                      fontSize: 36, // Reduced from 48
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple.shade400,
+                    ),
+                  ),
+                )
                     : Center(
-                        child: _buildShapeWidget(cell, 32),
-                      ), // Reduced from 40
+                  child: _buildShapeWidget(cell, 32),
+                ), // Reduced from 40
               );
             }).toList(),
           );
